@@ -1,3 +1,5 @@
+use regex::Regex;
+
 #[aoc(day1, part1)]
 pub fn solve_part1(input: &str) -> u32 {
     input.lines().map(|line|{
@@ -7,51 +9,21 @@ pub fn solve_part1(input: &str) -> u32 {
     }).sum()
 }
 
-const DIGITS:[&str;9] = ["one","two","three","four","five","six","seven","eight","nine"];
-
-fn first_word(s: &str) -> Option<u32> {
-    // Return early if a word can't fit in these characters
-    if s.len() < 3 {return None}
-    let mut number = 0;
-    let mut position = usize::MAX;
-    for (i, digit) in DIGITS.iter().enumerate(){
-        if let Some(pos) = s.find(digit) {
-            if pos < position {
-                position = pos;
-                number = i + 1;
-                println!("new position: {}, new number: {}", position, number);
-            }
-        }
+fn word_to_val(s:&str) -> u32{
+    match s {
+        "one" => 1, "two" => 2, "three" => 3,
+        "four" => 4, "five" => 5, "six" => 6,
+        "seven" => 7, "eight" => 8, "nine" => 9,
+        _ => 0
     }
-    // If no number was found, return None
-    if number == 0 {None} else {Some(number as u32)}
 }
-
-fn last_word(s: &str) -> Option<u32> {
-    // Return early if a word can't fit in these characters
-    if s.len() < 3 {return None}
-    let mut number = 0;
-    let mut position = 0;
-    for (i, digit) in DIGITS.iter().enumerate(){
-        if let Some(pos) = s.rfind(digit) {
-            if pos >= position {
-                position = pos;
-                number = i + 1;
-                println!("new position: {}, new number: {}", position, number);
-            }
-        }
-    }
-    // If no number was found, return None
-    if number == 0 {None} else {Some(number as u32)}
-}
-
 
 #[aoc(day1, part2)]
-pub fn solve_part2(input: &str) -> usize {
-    // We know the inputs all have at least one digit due to part 1
-    // So we can split the input by digits and only search the parts 
-    // before and after the first and/or last digit
+pub fn solve_part2(input: &str) -> u32 {
+    let words = Regex::new(r"(one|two|three|four|five|six|seven|eight|nine)").unwrap();
+
     input.lines().map(|line|{
+
         // Get the position and value of the first match
         let (d1_pos, chr1) = line.chars().enumerate()
                                .find(|(_i,x)| x.is_digit(10))
@@ -60,19 +32,20 @@ pub fn solve_part2(input: &str) -> usize {
         let (d2_pos, chr2) = line.chars().rev().enumerate()
                                .find(|(_i,x)| x.is_digit(10))
                                .unwrap();
+
+        // First digit
+        let d1 = if let Some(word) = words.find(&line[..d1_pos])
+        { word_to_val(word.as_str()) } else { chr1.to_digit(10).unwrap() };
+
+        // Second digit
+        let last_digit = line.len() - d2_pos - 1;
+        let d2 = if let Some(word) = words.find_iter(&line[last_digit..]).last()
+        { word_to_val(word.as_str()) } else { chr2.to_digit(10).unwrap() };
         
-        let d1 = first_word(&line[..d1_pos]).unwrap_or(
-            chr1.to_digit(10).unwrap()
-        );
+        d1*10 + d2
 
-        let d2 = last_word(&line[(line.len() - d2_pos - 1)..]).unwrap_or(
-            chr2.to_digit(10).unwrap()
-        );
-
-        (d1*10 + d2) as usize
     }).sum()
 }
-
 #[cfg(test)]
 mod tests {
     use super::*;
