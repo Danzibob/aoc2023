@@ -7,55 +7,55 @@ struct Cubes {
     blue: usize
 }
 
-// Parse a single draw from the bag using str.split()
-fn parse_draw(draw: &str) -> Cubes {
-    let mut counts:Cubes = Default::default();
-    draw.split(", ").for_each(|color| {
-        let entry = color.split_once(" ").unwrap();
-        let value = entry.0.parse::<usize>().unwrap();
-        match entry.1.chars().next().unwrap(){
-            'r' => counts.red = value,
-            'g' => counts.green = value,
-            'b' => counts.blue = value,
-            x => panic!("Unrecognised colour! {x}")
-        }
-    });
-    counts
+
+// Parse all draws from a game and return the minimum cube counts
+fn min_cubes_for_game(game: &str) -> Cubes{
+    let mut min:Cubes = Default::default();
+
+    // Parse and iterate through all the draws
+    let (_, draws) = game.split_once(": ").unwrap();
+    for draw in draws.split("; "){
+        draw.split(", ").for_each(|color| {
+            let entry = color.split_once(" ").unwrap();
+            let value = entry.0.parse::<usize>().unwrap();
+            // Update minimum possible counts
+            match entry.1.chars().next().unwrap(){
+                'r' => min.red = max(min.red, value),
+                'g' => min.green = max(min.green, value),
+                'b' => min.blue = max(min.blue, value),
+                x => panic!("Unrecognised colour! {x}")
+            }
+        })
+    }
+    min
 }
 
 #[aoc(day2, part1)]
 pub fn solve_part1(input: &str) -> usize {
-    input.lines().map(|game|{
-        let (game_name, draws) = game.split_once(": ").unwrap();
-        let mut min:Cubes = Default::default();
-        for draw in draws.split("; "){
-            let cubes = parse_draw(draw);
-            min.red = max(min.red, cubes.red);
-            min.green = max(min.green, cubes.green);
-            min.blue = max(min.blue, cubes.blue);
-        }
-        if (min.red > 12) || (min.green > 13) || (min.blue > 14) { 
-            0
-        } else {
-            game_name.split_once(" ").unwrap().1.parse::<usize>().unwrap()
-        }
-    }).sum()
+    input.lines().enumerate().map(|(id,game)|{
+
+        // Calculate the minimum possible cubes for the game
+        let min = min_cubes_for_game(game);
+
+        // If the game is possible, return the game ID
+        if (min.red <= 12) && (min.green <= 13) && (min.blue <= 14)
+        {id + 1} else {0}
+        
+    }).sum() // Then sum those game IDs
 }
 
 
 #[aoc(day2, part2)]
 pub fn solve_part2(input: &str) -> usize {
     input.lines().map(|game|{
-        let (_, draws) = game.split_once(": ").unwrap();
-        let mut min:Cubes = Default::default();
-        for draw in draws.split("; "){
-            let cubes = parse_draw(draw);
-            min.red = max(min.red, cubes.red);
-            min.green = max(min.green, cubes.green);
-            min.blue = max(min.blue, cubes.blue);
-        }
+
+        // Calculate the minimum possible cubes for the game
+        let min = min_cubes_for_game(game);
+
+        // Return the "Power" of the cubes
         min.red * min.green * min.blue
-    }).sum()
+
+    }).sum() // Then sum the Power
 }
 
 
