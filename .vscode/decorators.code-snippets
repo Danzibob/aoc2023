@@ -20,7 +20,7 @@
 		"prefix": ["solve"],
 		"body": [
 			"#[aoc($TM_FILENAME_BASE, part${1|1,2|})]",
-			"pub fn solve_part$1(input: &str) -> ${3|u32,u64|} {",
+			"pub fn solve_part$1(input: &str) -> ${3|usize,u32,u64|} {",
 			"$0",
 			"}"
 		],
@@ -31,7 +31,7 @@
 		"prefix": ["solve (bytes)"],
 		"body": [
 			"#[aoc($TM_FILENAME_BASE, part${1|1,2|}, Bytes)]",
-			"pub fn solve_part$1(input: &[u8]) -> ${3|u32,u64|} {",
+			"pub fn solve_part$1(input: &[u8]) -> ${3|usize,u32,u64|} {",
 			"$0",
 			"}"
 		],
