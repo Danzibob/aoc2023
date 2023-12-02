@@ -9,6 +9,7 @@ struct Cubes {
 
 
 // Parse all draws from a game and return the minimum cube counts
+#[inline(always)]
 fn min_cubes_for_game(game: &str) -> Cubes{
     let mut min:Cubes = Default::default();
 
@@ -17,7 +18,7 @@ fn min_cubes_for_game(game: &str) -> Cubes{
     for draw in draws.split("; "){
         draw.split(", ").for_each(|color| {
             let entry = color.split_once(" ").unwrap();
-            let value = entry.0.parse::<usize>().unwrap();
+            let value = entry.0.parse().unwrap();
             // Update minimum possible counts
             match entry.1.chars().next().unwrap(){
                 'r' => min.red = max(min.red, value),
