@@ -67,7 +67,7 @@ pub fn solve_part1(input: &str) -> usize {
                 }
             })
         // Add together the part numbers
-        }).fold(0usize, |acc:usize, part:&PartNum| acc + part.value)
+        }).fold(0, |acc:usize, part:&PartNum| acc + part.value)
     }).sum()
 }
 

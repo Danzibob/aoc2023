@@ -1,4 +1,3 @@
-#![feature(iter_map_windows)]
 extern crate aoc_runner;
 
 #[macro_use]
