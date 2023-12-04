@@ -64,7 +64,7 @@ pub fn solve_part1(input: &str) -> usize {
                 if let Some(l) = line {
                     let left = if part.start == 0 {0} else {part.start-1};
                     let right = part.end + 1;
-                    (&l.symbols).iter().any(|x| x >= &left && x < &right)
+                    l.symbols.iter().any(|x| x >= &left && x < &right)
                 } else {false}
 
             })
@@ -134,7 +134,7 @@ pub fn solve_part2(input: &str) -> usize {
 
             // If there are exactly 2 values, return their product
             if values.len() == 2 
-            { values.get(0).unwrap() * values.get(1).unwrap()}
+            { values.first().unwrap() * values.get(1).unwrap()}
             else { 0 }
 
         }).sum::<usize>()
