@@ -9,13 +9,15 @@ fn parse_card(numbers: &str) -> impl Iterator<Item = usize> + '_{
 }
 
 fn count_wins(cards: &str) -> impl Iterator<Item = usize> + '_ {
-    cards.lines().map(|line| {
+    let mut yours:Vec<usize> = vec![0; 100]; // Arbitrary big number
+    cards.lines().map(move |line| {
         let card = 
         line.split_once(": ").unwrap().1
             .split_once(" | ").unwrap();
         
         let winning = parse_card(card.0);
-        let yours:Vec<usize> = parse_card(card.1).collect();
+        yours.clear();
+        yours.extend(parse_card(card.1));
 
         winning.filter(|w| {
             yours.iter().find(|&x| x == w).is_some()
