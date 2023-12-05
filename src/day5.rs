@@ -20,9 +20,9 @@ fn parse_mapping(map: &str) -> Option<Mapping>{
         .take(4);
 
     // Take 3 numbers. If we run out, return None
-    for i in 0..3 {
-        if let Some(val) = vals.next()?.parse::<usize>().ok()
-        { numbers[i] = val } else { return None }
+    for num in &mut numbers {
+        if let Ok(val) = vals.next()?.parse::<usize>()
+        { *num = val } else { return None }
     }
 
     let offset = numbers[0] as isize - numbers[1] as isize;
@@ -42,29 +42,27 @@ pub fn solve_part1(input: &str) -> usize {
     // Read seeds into a 
     let mut seeds:Vec<usize> = file_reader
         .next().unwrap()[7..]
-        .split(" ").map(|x| x.parse::<usize>().unwrap())
+        .split(' ').map(|x| x.parse::<usize>().unwrap())
         .collect();
     let mut grow = seeds.clone();
 
     file_reader.next(); // Consume empty line
     
-    while file_reader.next().is_some() { // Consumes title
-        while let Some(line) = file_reader.next(){
+    for line in file_reader { // Consumes title
 
-            // If the line is empty, move on to the next section
-            if line == "" {
-                // Propegate growth back to original vector
-                seeds = grow.clone();
-                continue;
-            }
+        // If the line is empty, move on to the next section
+        if line.is_empty() {
+            // Propegate growth back to original vector
+            seeds = grow.clone();
+            continue;
+        }
 
-            // For every line with a valid mapping
-            if let Some(map) = parse_mapping(line) {
-                // Apply the mapping to all seeds
-                for i in 0..(seeds.len()) {
-                    if (seeds[i] >= map.src) && (seeds[i] < (map.src + map.rng)){
-                        grow[i] = (seeds[i] as isize + map.offset) as usize;
-                    }
+        // For every line with a valid mapping
+        if let Some(map) = parse_mapping(line) {
+            // Apply the mapping to all seeds
+            for i in 0..(seeds.len()) {
+                if (seeds[i] >= map.src) && (seeds[i] < (map.src + map.rng)){
+                    grow[i] = (seeds[i] as isize + map.offset) as usize;
                 }
             }
         }
@@ -72,7 +70,7 @@ pub fn solve_part1(input: &str) -> usize {
     *grow.iter().min().unwrap()
 }
 
-use std::{cmp::{max, min}, process};
+use std::cmp::{max, min};
 
 #[derive(Clone)]
 struct SeedRange {
@@ -117,11 +115,13 @@ fn map_range(range:&SeedRange, map:&Mapping) -> (Option<SeedRange>, Option<SeedR
 pub fn solve_part2(input: &str) -> usize {
     let mut file_reader = input.lines();
 
-    // Read seed values into a vec of ranges
-    let mut seeds:Vec<SeedRange> = Vec::new();
+    // Read values into an iterator numbers
     let mut seed_vals = file_reader
         .next().unwrap()[7..]
-        .split(" ").map(|x| x.parse::<usize>().unwrap());
+        .split(' ').map(|x| x.parse::<usize>().unwrap());
+
+    // Parse the numbers into SeedRanges
+    let mut seeds:Vec<SeedRange> = Vec::new();
     while let Some(first_seed) = seed_vals.next(){
         seeds.push(SeedRange {
             start: first_seed,
@@ -133,72 +133,65 @@ pub fn solve_part2(input: &str) -> usize {
     let mut maps: Vec<Vec<Mapping>> = Vec::new();
     let mut this_mapping: Vec<Mapping> = Vec::new();
 
-    file_reader.next(); // Consume empty line
+    file_reader.next(); // Consume empty line of file
     
-    while file_reader.next().is_some() { // Consumes title
-        while let Some(line) = file_reader.next(){
+    for line in file_reader {
 
-            // If the line is empty, move on to the next section
-            if line == "" {
-                this_mapping.sort_unstable_by(|a,b| a.src.cmp(&b.src));
-                maps.push(this_mapping);
-                this_mapping = Vec::new();
-                continue;
-            }
-
-            // if a line is valid then add to the mappings list
-            if let Some(map) = parse_mapping(line) {
-                this_mapping.push(map);
-            }
+        // If the line is empty, move on to the next section
+        if line.is_empty() {
+            // Sort and collect the mappings for later use
+            this_mapping.sort_unstable_by(|a,b| a.src.cmp(&b.src));
+            maps.push(this_mapping);
+            this_mapping = Vec::new();
+            continue;
         }
-        maps.push(this_mapping.clone());
+
+        // if a line is valid then add to the mappings list
+        if let Some(map) = parse_mapping(line) {
+            this_mapping.push(map);
+        }   
     }
+    maps.push(this_mapping.clone());
 
+    // Vec to track seed "growth" and the current seed's split
     let mut grow:Vec<SeedRange> = Vec::new();
-
     let mut current_seed:SeedRange;
 
+    // For each set of mapping functions 
     for level in &maps{
-        // println!("Starting next map level");
-        for i in 0..(seeds.len()){
-            current_seed = seeds[i].clone();
-            // println!("Starting new seed {:?}", current_seed);
-            let mut done = false;
+        // And for each seed that has "grown"
+        for seed in &seeds{
+            current_seed = seed.clone();
+
+            let mut grown = false;
             for map in level{
-                match map_range(&current_seed, &map) {
+                match map_range(&current_seed, map) {
                     // If there are no matches for this map, grow this seed and go to the next map
-                    (None, None, None) => {},
+                    (None, None, None) => {}, // keep going until we find a match
                     (before, overlap, after) => {
-                        // println!("{:?} {:?}", current_seed, map);
-                        if let Some(new_seed) = before { 
-                            // println!("B:{:?} ", new_seed);
-                            grow.push(new_seed);
-                        }
-                        if let Some(new_seed) = overlap {
-                            // println!("O:{:?} ", new_seed);
-                            grow.push(new_seed);
-                        }
+                        if let Some(new_seed) = before  { grow.push(new_seed) }
+                        if let Some(new_seed) = overlap { grow.push(new_seed) }
                         if let Some(new_seed) = after {
-                            // println!("A:{:?} ", new_seed);
                             // If there's still room to intersect more maps in this seed range
-                            // Update the current seed and continue iterating over maps
+                            //  update the current seed and continue iterating over maps
                             current_seed.start = new_seed.start;
-                            // println!("New Seed:{:?} ", current_seed);
                         } else {
-                            done = true;
+                            // We have matched and completed the range for this seed
+                            //  move on to the next one
+                            grown = true;
                             break;
                         }
                     }
                 }
             }
-            if !done { grow.push(current_seed.clone()) }
+
+            // If the seed hasn't grown at all, we still need to keep it!
+            if !grown { grow.push(current_seed.clone()) }
         }
         // Once all maps in this level have been matched,
-        // Propegate the growth back to the seed vector
-        seeds = grow.clone();
+        //  propegate the growth back to the seed vector
+        std::mem::swap(&mut seeds, &mut grow); // Clevel lil vector swap trick
         grow.clear();
-        // process::exit(0);
-        // println!("All Seeds: {:?}\n", seeds);
     }
     seeds.iter().map(|range| range.start).min().unwrap()
 }
@@ -222,7 +215,12 @@ mod tests {
 
     #[test]
     fn part1_full() {
-        solve_part1(FULL_INPUT);
+        assert_eq!(solve_part1(FULL_INPUT), 107430936);
+    }
+
+    #[test]
+    fn part2_full() {
+        assert_eq!(solve_part2(FULL_INPUT), 23738616);
     }
 
     // Too low: 83692320
