@@ -159,31 +159,31 @@ pub fn solve_part2(input: &str) -> usize {
     let mut current_seed:SeedRange;
 
     for level in &maps{
-        println!("Starting next map level");
+        // println!("Starting next map level");
         for i in 0..(seeds.len()){
             current_seed = seeds[i].clone();
-            println!("Starting new seed {:?}", current_seed);
+            // println!("Starting new seed {:?}", current_seed);
             let mut done = false;
             for map in level{
                 match map_range(&current_seed, &map) {
                     // If there are no matches for this map, grow this seed and go to the next map
                     (None, None, None) => {},
                     (before, overlap, after) => {
-                        println!("{:?} {:?}", current_seed, map);
+                        // println!("{:?} {:?}", current_seed, map);
                         if let Some(new_seed) = before { 
-                            println!("B:{:?} ", new_seed);
+                            // println!("B:{:?} ", new_seed);
                             grow.push(new_seed);
                         }
                         if let Some(new_seed) = overlap {
-                            println!("O:{:?} ", new_seed);
+                            // println!("O:{:?} ", new_seed);
                             grow.push(new_seed);
                         }
                         if let Some(new_seed) = after {
-                            println!("A:{:?} ", new_seed);
+                            // println!("A:{:?} ", new_seed);
                             // If there's still room to intersect more maps in this seed range
                             // Update the current seed and continue iterating over maps
                             current_seed.start = new_seed.start;
-                            println!("New Seed:{:?} ", current_seed);
+                            // println!("New Seed:{:?} ", current_seed);
                         } else {
                             done = true;
                             break;
@@ -198,7 +198,7 @@ pub fn solve_part2(input: &str) -> usize {
         seeds = grow.clone();
         grow.clear();
         // process::exit(0);
-        println!("All Seeds: {:?}\n", seeds);
+        // println!("All Seeds: {:?}\n", seeds);
     }
     seeds.iter().map(|range| range.start).min().unwrap()
 }
