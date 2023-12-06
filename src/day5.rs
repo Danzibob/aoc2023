@@ -190,7 +190,7 @@ pub fn solve_part2(input: &str) -> usize {
         }
         // Once all maps in this level have been matched,
         //  propegate the growth back to the seed vector
-        std::mem::swap(&mut seeds, &mut grow); // Clevel lil vector swap trick
+        std::mem::swap(&mut seeds, &mut grow); // Cleve lil vector swap trick
         grow.clear();
     }
     seeds.iter().map(|range| range.start).min().unwrap()
@@ -222,6 +222,4 @@ mod tests {
     fn part2_full() {
         assert_eq!(solve_part2(FULL_INPUT), 23738616);
     }
-
-    // Too low: 83692320
 }
