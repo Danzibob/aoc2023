@@ -26,11 +26,11 @@ pub fn solve_part2(input: &str) -> u32 {
 
         // Get the position and value of the first match
         let (d1_pos, chr1) = line.chars().enumerate()
-                               .find(|(_i,x)| x.is_digit(10))
+                               .find(|(_i,x)| x.is_ascii_digit())
                                .unwrap();
         // and the position and value of the last match
         let (d2_pos, chr2) = line.chars().rev().enumerate()
-                               .find(|(_i,x)| x.is_digit(10))
+                               .find(|(_i,x)| x.is_ascii_digit())
                                .unwrap();
 
         // First digit

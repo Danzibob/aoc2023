@@ -17,7 +17,7 @@ fn min_cubes_for_game(game: &str) -> Cubes{
     let (_, draws) = game.split_once(": ").unwrap();
     for draw in draws.split("; "){
         draw.split(", ").for_each(|color| {
-            let entry = color.split_once(" ").unwrap();
+            let entry = color.split_once(' ').unwrap();
             let value = entry.0.parse().unwrap();
             // Update minimum possible counts
             match entry.1.chars().next().unwrap(){

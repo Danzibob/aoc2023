@@ -1,7 +1,7 @@
 #[inline(always)]
 fn parse_card(numbers: &str) -> impl Iterator<Item = usize> + '_{
     numbers
-        .split(" ")
+        .split(' ')
         .filter_map(|x| {
             x.parse::<usize>().ok()
         })
@@ -20,7 +20,7 @@ fn count_wins(cards: &str) -> impl Iterator<Item = usize> + '_ {
         yours.extend(parse_card(card.1));
 
         winning.filter(|w| {
-            yours.iter().find(|&x| x == w).is_some()
+            yours.iter().any(|x| x == w)
         }).count()
     })
 }
