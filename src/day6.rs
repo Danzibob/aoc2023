@@ -1,6 +1,6 @@
 use std::iter::zip;
 
-fn win_race(t: isize, d:isize) -> usize{
+fn win_race(t: i64, d:i64) -> usize{
     // distance achieved in the race is s(t-s)
     // so to win: s(t-s) - d > 0
     // first, solve -s^2 + ts - d = 0 to get bounds
@@ -20,9 +20,11 @@ fn win_race(t: isize, d:isize) -> usize{
 #[aoc(day6, part1)]
 pub fn solve_part1(input: &str) -> usize {
     let mut lines = input.lines().map(|line|{
-        line.split_whitespace().skip(1).map(|number|{
-            number.parse::<isize>().unwrap()
-        })
+        line
+            .split_whitespace().skip(1)
+            .map(|number|{
+                number.parse::<i64>().unwrap()
+            })
     });
     let times = lines.next().unwrap();
     let distances = lines.next().unwrap();
@@ -39,7 +41,7 @@ pub fn solve_part2(input: &str) -> usize {
         line
             .split_whitespace().skip(1)
             .collect::<String>()
-            .parse::<isize>().unwrap()
+            .parse::<i64>().unwrap()
     });
     let time = lines.next().unwrap();
     let distance = lines.next().unwrap();
