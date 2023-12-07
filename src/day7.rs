@@ -1,8 +1,13 @@
-fn card_to_value(card: char) -> u8{
+// Constants for determining if jokers are wild
+const WILD:bool = true;
+const NOT_WILD:bool = false;
+
+// Converts a card to its numerical value; wild = 1
+fn card_to_value<const JACKS_WILD:bool>(card: char) -> u8{
     match card {
         '2'..='9' => card.to_digit(10).unwrap() as u8,
         'T' => 10,
-        'J' => 11,
+        'J' => if JACKS_WILD {1} else {11},
         'Q' => 12,
         'K' => 13,
         'A' => 14,
@@ -10,49 +15,62 @@ fn card_to_value(card: char) -> u8{
     }
 }
 
-fn count_hand(hand: &mut [u8;5]) -> u16{
-    hand.sort();
-    
+// Count occurences of the two most common cards in the array
+fn count_hand(hand: &mut [u8;5]) -> u8{
+    // Sort the hand so contiguous elements are together
+    hand.sort_unstable();
+
+    // Parse the hand to count the most common cards
     let mut last_card = 0;
     let mut ptr = 0;
     let mut counts:[u8; 5] = [0,0,0,0,0];
-    for &card in hand.iter() {
-        if card != last_card{
+    let mut wildcards = 0;
+
+    // Reverse to ensure all wildcards are last
+    for &card in hand.iter().rev() {
+        // Count up the cards moving on if we see a new one
+        if card == 1 { wildcards += 1}
+        else if card != last_card{
             last_card = card;
             ptr += 1;
-            if ptr == 5 {break}
+            counts[ptr-1] += 1;
+        } else {
+            counts[ptr-1] += 1;
         }
-        counts[ptr] += 1;
     }
 
-    counts.sort();
+    // Sort the counts so the highest counts are at the end
+    counts.sort_unstable();
 
-    ((counts[4] as u16) << 4) + counts[3] as u16
+    // Add any wildcards to the highest card
+    counts[4] += wildcards;
+
+    // Return the combined card counts
+    (counts[4] << 4) + counts[3]
 }
 
-#[aoc(day7, part1)]
-pub fn solve_part1(input: &str) -> usize {
+pub fn solve<const JACKS_WILD:bool>(input: &str) -> usize {
 
     // Array to re-use for storing sorted array
     let mut hand_buffer:[u8;5] = [0,0,0,0,0];
 
 
     let mut hands = input.lines().map(|line|{
-        let (cards, bet) = line.split_once(" ").unwrap();
+        let (cards, bet) = line.split_once(' ').unwrap();
         cards.chars().enumerate().for_each(|(i,card)|{
-            hand_buffer[i] = card_to_value(card)
+            hand_buffer[i] = card_to_value::<JACKS_WILD>(card)
         });
 
         // We want to lexicographically order by [...count_hand, ...hand]
         // But to make this efficient we can combine the hand into one u64
 
-        let card_order_score = hand_buffer.iter().fold(0u64, |acc, &card|{
+        let card_order_score = hand_buffer.iter().fold(0, |acc, &card|{
             (acc << 4) + card as u64
         });
 
         let hand_score = count_hand(&mut hand_buffer);
 
-        let score = ((hand_score as u64) << 20) + card_order_score as u64;
+        let score = ((hand_score as u64) << 20) + card_order_score;
 
         (score, bet.parse::<usize>().unwrap())
     }).collect::<Vec<(u64, usize)>>();
@@ -64,82 +82,14 @@ pub fn solve_part1(input: &str) -> usize {
     }).sum()
 }
 
-// ---=== PART 2 ===---
-
-fn card_to_value2(card: char) -> u8{
-    match card {
-        '2'..='9' => card.to_digit(10).unwrap() as u8,
-        'T' => 10,
-        'J' => 1,
-        'Q' => 12,
-        'K' => 13,
-        'A' => 14,
-        _ => panic!("Unrecognised card: {card}")
-    }
-}
-
-fn count_hand2(hand: &mut [u8;5]) -> u16{
-    hand.sort();
-    
-    let mut last_card = 0;
-    let mut ptr = 0;
-    let mut counts:[u8; 5] = [0,0,0,0,0];
-    for &card in hand.iter().rev() {
-        if card == 1 {  // Jokers
-            if let Some((index, _)) = counts.iter().enumerate().max_by_key(|&(_, item)| item) {
-                counts[index] += 1;
-            }
-        } else if card != last_card{
-            last_card = card;
-            ptr += 1;
-            if ptr == 5 {break}
-            counts[ptr] += 1;
-        } else {
-            counts[ptr] += 1;
-        }
-    }
-
-    println!("Counts: {:?}", counts);
-
-    counts.sort();
-
-    ((counts[4] as u16) << 4) + counts[3] as u16
+#[aoc(day7, part1)]
+pub fn solve_part1(input: &str) -> usize {
+    solve::<NOT_WILD>(input)
 }
 
 #[aoc(day7, part2)]
 pub fn solve_part2(input: &str) -> usize {
-
-    // Array to re-use for storing sorted array
-    let mut hand_buffer:[u8;5] = [0,0,0,0,0];
-
-
-    let mut hands = input.lines().map(|line|{
-        let (cards, bet) = line.split_once(" ").unwrap();
-        cards.chars().enumerate().for_each(|(i,card)|{
-            hand_buffer[i] = card_to_value2(card)
-        });
-
-        // We want to lexicographically order by [...count_hand, ...hand]
-        // But to make this efficient we can combine the hand into one u64
-
-        let card_order_score = hand_buffer.iter().fold(0u64, |acc, &card|{
-            (acc << 4) + card as u64
-        });
-
-        let hand_score = count_hand2(&mut hand_buffer);
-
-        let score = ((hand_score as u64) << 20) + card_order_score as u64;
-
-        println!("{cards} {hand_score:#x} {card_order_score:#x}");
-
-        (score, bet.parse::<usize>().unwrap())
-    }).collect::<Vec<(u64, usize)>>();
-
-    hands.sort_by_key(|(score, _)| *score);
-
-    hands.iter().enumerate().map(|(rank, (_score, bet))| {
-        (rank+1) * bet
-    }).sum()
+    solve::<WILD>(input)
 }
 
 
@@ -161,10 +111,9 @@ mod tests {
     }
 
     #[test]
-    fn part1_full() {
-        let score = solve_part1(FULL_INPUT);
-        println!("Final Score: {}", score);
-        assert!(245713384 < score);
+    fn full_input() {
+        assert_eq!(solve_part1(FULL_INPUT), 246163188);
+        assert_eq!(solve_part2(FULL_INPUT), 245794069);
     }
 
     #[test]
@@ -175,6 +124,4 @@ mod tests {
         assert_eq!(count_hand(&mut [7,7,8,8,8]), 0x32);
         assert_eq!(count_hand(&mut [2,3,4,5,6]), 0x11);
     }
-
-    // Too low: 245713384
 }
