@@ -22,20 +22,25 @@ fn count_hand(hand: &mut [u8;5]) -> u8{
 
     // Parse the hand to count the most common cards
     let mut last_card = 0;
-    let mut ptr = 0;
+    let mut ptr = 5;
     let mut wildcards = 0;
 
     // Reverse to ensure all wildcards are last
     for i in (0..5).rev() {
         // Count up the cards moving on if we see a new one
-        if hand[i] == 1 { wildcards += 1}
+        if hand[i] == 1 { wildcards += 1 }
         else if hand[i] != last_card{
             last_card = hand[i];
-            ptr += 1;
-            hand[ptr-1] = 1;
+            ptr -= 1;
+            hand[ptr] = 1;
         } else {
-            hand[ptr-1] += 1;
+            hand[ptr] += 1;
         }
+    }
+
+    // Zero out not-overwritten parts of the array
+    for i in 0..ptr {
+        hand[i] = 0;
     }
 
     // Sort the counts so the highest counts are at the end
@@ -63,9 +68,9 @@ pub fn solve<const JACKS_WILD:bool>(input: &str) -> usize {
         // We want to lexicographically order by [...count_hand, ...hand]
         // But to make this efficient we can combine the hand into one u32
 
-        let card_order_score = hand_buffer.iter().fold(0, |acc, &card|{
-            (acc << 4) + card as u32
-        });
+        let card_order_score = hand_buffer.iter().enumerate().map(|(i, &card)|{
+            (card as u32) << (4*(4-i))
+        }).sum::<u32>();
 
         let hand_score = count_hand(&mut hand_buffer);
 
