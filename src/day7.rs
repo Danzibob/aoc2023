@@ -62,18 +62,18 @@ pub fn solve<const JACKS_WILD:bool>(input: &str) -> usize {
         });
 
         // We want to lexicographically order by [...count_hand, ...hand]
-        // But to make this efficient we can combine the hand into one u64
+        // But to make this efficient we can combine the hand into one u32
 
         let card_order_score = hand_buffer.iter().fold(0, |acc, &card|{
-            (acc << 4) + card as u64
+            (acc << 4) + card as u32
         });
 
         let hand_score = count_hand(&mut hand_buffer);
 
-        let score = ((hand_score as u64) << 20) + card_order_score;
+        let score = ((hand_score as u32) << 20) + card_order_score;
 
         (score, bet.parse::<usize>().unwrap())
-    }).collect::<Vec<(u64, usize)>>();
+    }).collect::<Vec<(u32, usize)>>();
 
     hands.sort_by_key(|(score, _)| *score);
 
