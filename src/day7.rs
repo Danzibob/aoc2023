@@ -23,30 +23,29 @@ fn count_hand(hand: &mut [u8;5]) -> u8{
     // Parse the hand to count the most common cards
     let mut last_card = 0;
     let mut ptr = 0;
-    let mut counts:[u8; 5] = [0,0,0,0,0];
     let mut wildcards = 0;
 
     // Reverse to ensure all wildcards are last
-    for &card in hand.iter().rev() {
+    for i in (0..5).rev() {
         // Count up the cards moving on if we see a new one
-        if card == 1 { wildcards += 1}
-        else if card != last_card{
-            last_card = card;
+        if hand[i] == 1 { wildcards += 1}
+        else if hand[i] != last_card{
+            last_card = hand[i];
             ptr += 1;
-            counts[ptr-1] += 1;
+            hand[ptr-1] = 1;
         } else {
-            counts[ptr-1] += 1;
+            hand[ptr-1] += 1;
         }
     }
 
     // Sort the counts so the highest counts are at the end
-    counts.sort_unstable();
+    hand.sort_unstable();
 
     // Add any wildcards to the highest card
-    counts[4] += wildcards;
+    hand[4] += wildcards;
 
     // Return the combined card counts
-    (counts[4] << 4) + counts[3]
+    (hand[4] << 4) + hand[3]
 }
 
 pub fn solve<const JACKS_WILD:bool>(input: &str) -> usize {
